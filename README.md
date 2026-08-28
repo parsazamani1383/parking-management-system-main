@@ -133,7 +133,16 @@ parking-management-system/
 │   ├── DB_implementation_HW05_Parsa_Raef.pdf
 │   ├── Parking_Management_User_Forms_and_Flow_Raef_Parsa.pdf
 │   ├── SE_ClassDiagram.svg
-│   └── SE_Use-Case.svg
+│   ├── SE_Use-Case.svg
+│   └── screenshots/
+│       ├── login.png
+│       ├── dashboard.png
+│       ├── vehicle-entry.png
+│       ├── vehicle-exit.png
+│       ├── active-vehicles.png
+│       ├── admin-panel.png
+│       ├── parking-spots.png
+│       └── user-management.png
 │
 ├── src/
 │   ├── application/
