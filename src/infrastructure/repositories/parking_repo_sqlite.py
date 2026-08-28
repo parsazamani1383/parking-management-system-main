@@ -1,20 +1,97 @@
-from src.application.interfaces.parking_repository import ParkingRepository
+from datetime import datetime
+
+from src.application.interfaces.parking_repo import (
+    ParkingRepository,
+)
+from src.domain.entities.parking import Parking
 from src.infrastructure.db.connection import DatabaseConnection
 
-class ParkingRepoSqlite(ParkingRepository):
-    def __init__(self):
-        self.conn = DatabaseConnection.get_connection()
 
-    def get_info(self):
-        cursor = self.conn.cursor()
-        cursor.execute("SELECT * FROM parking_info LIMIT 1")
-        return dict(cursor.fetchone())
+class ParkingRepositorySQLite(
+    ParkingRepository
+):
 
-    def get_current_occupancy(self):
-        cursor = self.conn.cursor()
-        cursor.execute("""
-            SELECT 
-                (SELECT COUNT(*) FROM parking_spot WHERE status = 'occupied') as occupied_count,
-                (SELECT total_capacity FROM parking_info LIMIT 1) as total_capacity
-        """)
-        return dict(cursor.fetchone())
+    def __init__(
+        self,
+        db: DatabaseConnection
+    ):
+        self._db = db
+
+    def _row_to_entity(
+        self,
+        row
+    ) -> Parking:
+
+        return Parking(
+            id=row["id"],
+            name=row["name"],
+            code=row["code"],
+            status=row["status"],
+            created_at=datetime.fromisoformat(
+                row["created_at"]
+            ),
+            updated_at=(
+                datetime.fromisoformat(
+                    row["updated_at"]
+                )
+                if row["updated_at"]
+                else None
+            ),
+        )
+
+    def get_by_id(
+        self,
+        parking_id: int
+    ) -> Parking | None:
+
+        conn = self._db.get_connection()
+
+        try:
+            cursor = conn.cursor()
+
+            cursor.execute(
+                """
+                SELECT *
+                FROM parking
+                WHERE id = ?
+                """,
+                (parking_id,)
+            )
+
+            row = cursor.fetchone()
+
+            if row is None:
+                return None
+
+            return self._row_to_entity(row)
+
+        finally:
+            conn.close()
+
+    def get_current(
+        self
+    ) -> Parking | None:
+
+        conn = self._db.get_connection()
+
+        try:
+            cursor = conn.cursor()
+
+            cursor.execute(
+                """
+                SELECT *
+                FROM parking
+                ORDER BY id
+                LIMIT 1
+                """
+            )
+
+            row = cursor.fetchone()
+
+            if row is None:
+                return None
+
+            return self._row_to_entity(row)
+
+        finally:
+            conn.close()
