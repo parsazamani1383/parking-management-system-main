@@ -1,70 +1,103 @@
 from datetime import datetime
 
 from src.domain.entities.parking_session import ParkingSession
+from src.domain.entities.vehicle import Vehicle
 from src.domain.exceptions import (
-    EntityNotFoundError,
     ValidationError,
-    ParkingSpotUnavailableError
 )
 
-from src.application.interfaces.vehicle_repo import VehicleRepository
-from src.application.interfaces.spot_repo import ParkingSpotRepository
-from src.application.interfaces.session_repo import ParkingSessionRepository
-from src.application.interfaces.shift_repo import OperatorShiftRepository
+from src.application.interfaces.vehicle_repo import (
+    VehicleRepository,
+)
+from src.application.interfaces.spot_repo import (
+    SpotRepository,
+)
+from src.application.interfaces.session_repo import (
+    SessionRepository,
+)
 
 
-class RegisterVehicleEntryUseCase:
+class RegisterEntryUseCase:
 
     def __init__(
         self,
         vehicle_repo: VehicleRepository,
-        spot_repo: ParkingSpotRepository,
-        session_repo: ParkingSessionRepository,
-        shift_repo: OperatorShiftRepository
+        spot_repo: SpotRepository,
+        session_repo: SessionRepository,
     ):
-        self.vehicle_repo = vehicle_repo
-        self.spot_repo = spot_repo
-        self.session_repo = session_repo
-        self.shift_repo = shift_repo
+        self._vehicle_repo = vehicle_repo
+        self._spot_repo = spot_repo
+        self._session_repo = session_repo
 
-    def execute(self, plate_number: str, operator_user_id: int) -> ParkingSession:
+    def execute(
+        self,
+        plate_number: str,
+        vehicle_type: str,
+        shift_id: int,
+    ) -> ParkingSession:
 
-        # 1. Find vehicle
-        vehicle = self.vehicle_repo.get_by_plate(plate_number)
+        vehicle = self._vehicle_repo.get_by_plate(
+            plate_number
+        )
+
         if vehicle is None:
-            raise EntityNotFoundError("Vehicle not found.")
 
-        # 2. Check active session
-        active_session = self.session_repo.get_active_by_vehicle(vehicle.id)
-        if active_session is not None:
-            raise ValidationError("Vehicle already has an active parking session.")
+            vehicle = Vehicle(
+                id=None,
+                plate_number=plate_number,
+                vehicle_type=vehicle_type,
+                color=None,
+                brand=None,
+                model=None,
+                owner_name=None,
+                owner_phone=None,
+                created_at=datetime.now(),
+            )
 
-        # 3. Validate operator shift
-        shift = self.shift_repo.get_active_shift(operator_user_id)
-        if shift is None:
-            raise ValidationError("Operator does not have an active shift.")
+            vehicle = self._vehicle_repo.save(
+                vehicle
+            )
 
-        # 4. Find available spot
-        spot = self.spot_repo.find_available_spot(vehicle.vehicle_type)
+        active_session = (
+            self._session_repo
+            .get_active_by_vehicle(
+                vehicle.id
+            )
+        )
+
+        if active_session:
+
+            raise ValidationError(
+                "Vehicle already has an active session."
+            )
+
+        spot = (
+            self._spot_repo
+            .get_available_spot(
+                vehicle.vehicle_type
+            )
+        )
+
         if spot is None:
-            raise ParkingSpotUnavailableError("No available parking spot.")
 
-        # 5. Occupy spot
+            raise ValidationError(
+                "No available parking spot."
+            )
+
         spot.occupy()
 
-        # 6. Create session
+        self._spot_repo.update(
+            spot
+        )
+
         session = ParkingSession(
             id=None,
             vehicle_id=vehicle.id,
             spot_id=spot.id,
-            shift_id=shift.id,
+            shift_id=shift_id,
             entry_time=datetime.now(),
-            exit_time=None,
-            total_fee=None
         )
 
-        # 7. Persist
-        saved_session = self.session_repo.save(session)
-        self.spot_repo.update(spot)
-
-        return saved_session
+        return self._session_repo.save(
+            session
+        )
