@@ -1,38 +1,38 @@
-from datetime import timedelta
+from datetime import datetime
+from math import ceil
+
+from src.domain.entities.tariff import Tariff
 
 
 class FeeCalculator:
 
-    @staticmethod
-    def calculate_fee(entry_time, exit_time, tariff):
+    def calculate(
+        self,
+        entry_time: datetime,
+        exit_time: datetime,
+        tariff: Tariff,
+    ) -> float:
 
-        duration = exit_time - entry_time
-        total_hours = duration.total_seconds() / 3600
+        duration_hours = (
+            exit_time - entry_time
+        ).total_seconds() / 3600
 
-        # اگر کمتر از یک ساعت بود → ساعت اول حساب شود
-        if total_hours <= 1:
-            return tariff["base_amount"]
-
-        # اگر بیشتر از 24 ساعت
-        if total_hours >= 24:
-            days = int(total_hours // 24)
-            remaining_hours = total_hours % 24
-
-            fee = days * tariff["daily_amount"]
-
-            if remaining_hours > 0:
-                if remaining_hours <= 1:
-                    fee += tariff["base_amount"]
-                else:
-                    fee += tariff["base_amount"] + \
-                           (int(remaining_hours - 1) * tariff["hourly_amount"])
-
-            return fee
-
-        # بین 1 تا 24 ساعت
-        remaining_hours = total_hours - 1
-
-        return (
-            tariff["base_amount"] +
-            int(remaining_hours) * tariff["hourly_amount"]
+        duration_hours = max(
+            1,
+            ceil(duration_hours)
         )
+
+        fee = tariff.base_rate
+
+        if duration_hours > 1:
+            fee += (
+                duration_hours - 1
+            ) * tariff.hourly_rate
+
+        if (
+            tariff.daily_rate > 0
+            and fee > tariff.daily_rate
+        ):
+            fee = tariff.daily_rate
+
+        return float(fee)
