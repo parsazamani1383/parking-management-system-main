@@ -1,123 +1,280 @@
-# Public Parking Management System
+# Parking Management System
 
-**Software Engineering Course Project**
+A desktop-based Parking Management System developed as a Software Engineering course project.
 
-**Team Members:** Raef Zandkarimi, Parsa Zamani
+The system provides a complete workflow for managing a parking facility, including user authentication, vehicle entry and exit, parking spots, tariffs, parking sessions, payments, receipts, active vehicles, and administrative operations.
 
-A desktop-based Parking Management System developed with **Python** and **SQLite** for managing parking operations, including vehicle entry and exit, parking spots, tariffs, users, parking sessions, payments, receipts, and reports.
-
-The project is designed using **Clean Architecture** principles to keep the business logic independent from infrastructure and user-interface concerns.
-
----
-
-## Overview
-
-The Parking Management System provides a complete workflow for operating a public parking facility.
-
-The system supports different user roles and provides dedicated functionality for parking operators and administrators. Operators can register vehicle entries and exits, manage active parking sessions, calculate parking fees, and issue receipts. Administrators can manage users, parking spots, tariffs, and access management features through the desktop interface.
-
-The project is organized into separate layers for **Domain**, **Application**, **Infrastructure**, and **UI**, making the system easier to maintain, test, and extend.
+The project is structured using a layered architecture inspired by **Clean Architecture**, separating the domain logic, application logic, infrastructure, and user interface.
 
 ---
 
 ## Features
 
-### Authentication
+### Authentication & User Management
 
-* User login and authentication
-* Role-based access for administrators and operators
-* User management
+- User login and authentication
+- Role-based access for system users
+- User creation and management
+- User information update
+- User management through the administration panel
 
 ### Vehicle Management
 
-* Register vehicle entry
-* Register vehicle exit
-* Track active vehicles inside the parking
-* Support for different vehicle types
-* License plate conversion and handling
+- Register vehicle entry
+- Register vehicle exit
+- Support for different vehicle types
+- License plate registration
+- License plate conversion
+- View vehicles currently inside the parking
 
 ### Parking Spot Management
 
-* Create parking spots
-* Update parking spot information
-* Delete parking spots
-* Enable or disable parking spots
-* Track parking spot availability and status
+- Create parking spots
+- Update parking spot information
+- Delete parking spots
+- Enable and disable parking spots
+- Track parking spot status and availability
 
 ### Tariff Management
 
-* Manage parking tariffs
-* Update tariff information
-* Calculate parking fees based on the configured tariff
+- Create and manage parking tariffs
+- Update tariff information
+- Calculate parking fees according to configured tariffs
 
 ### Parking Sessions
 
-* Create and manage parking sessions
-* Track entry and exit times
-* Associate vehicles with parking spots
-* Calculate the final parking amount
-* Record payment information
+- Create parking sessions when a vehicle enters
+- Store vehicle, parking spot, and operator information
+- Track entry and exit times
+- Calculate the final parking fee
+- Track session status
 
-### Receipts & Payments
+### Payments & Receipts
 
-* Issue parking receipts
-* Store payment information
-* Generate receipt PDFs
+- Process parking payments
+- Record payment information
+- Generate parking receipts
+- Generate receipt PDF files
 
 ### Dashboard & Reports
 
-* Dashboard for monitoring parking operations
-* View active vehicles
-* Access parking and session information
-* Generate and display operational reports
+- Parking dashboard
+- Display parking capacity information
+- Display occupied and available spaces
+- Display current revenue
+- Display recent parking activity
+- Access operational reports
 
-### Desktop User Interface
+### Desktop Interface
 
-The project includes a desktop graphical user interface with dedicated windows for:
+The project includes a desktop graphical interface with dedicated windows for:
 
-* Login
-* Dashboard
-* Vehicle Entry
-* Vehicle Exit & Payment
-* Active Vehicles
-* Administration Panel
-* User Management
-* Parking Spot Management
-
----
-
-## Architecture
-
-The project follows a **Clean Architecture–oriented structure**.
-
-### Domain
-
-Contains the core business entities and domain-specific exceptions.
-
-The domain layer is independent of the database and user interface.
-
-### Application
-
-Contains application-level business logic, repository interfaces, services, and use cases.
-
-### Infrastructure
-
-Contains the concrete implementations required to communicate with external systems, including the SQLite database and repository implementations.
-
-### UI
-
-Contains the user interfaces of the application, including both the desktop interface and CLI interface.
-
-### Utils
-
-Contains supporting utilities such as license plate conversion and receipt PDF generation.
+- Login
+- Dashboard
+- Vehicle Entry
+- Vehicle Exit
+- Active Vehicles
+- Administration Panel
+- User Management
+- Parking Spot Management
 
 ---
 
-## Project Structure
+# Screenshots
+
+The final application includes a graphical desktop interface for the main parking management operations.
+
+## Login
+
+The login screen allows users to authenticate before accessing the system.
+
+![Login](docs/screenshots/login.png)
+
+---
+
+## Dashboard
+
+The dashboard provides an overview of the current state of the parking system, including parking capacity, occupied spaces, available spaces, revenue, and recent activity.
+
+![Dashboard](docs/screenshots/dashboard.png)
+
+---
+
+## Vehicle Entry
+
+Operators can register an incoming vehicle by entering the license plate information and selecting the vehicle type.
+
+![Vehicle Entry](docs/screenshots/vehicle-entry.png)
+
+---
+
+## Vehicle Exit & Payment
+
+The vehicle exit screen is used to register a vehicle's departure, calculate the parking fee, and complete the payment process.
+
+![Vehicle Exit](docs/screenshots/vehicle-exit.png)
+
+---
+
+## Active Vehicles
+
+This section displays vehicles that are currently inside the parking facility.
+
+![Active Vehicles](docs/screenshots/active-vehicles.png)
+
+---
+
+## Administration Panel
+
+The administration panel provides access to management functionality such as users, parking spots, tariffs, and other administrative operations.
+
+![Administration Panel](docs/screenshots/admin-panel.png)
+
+---
+
+## Parking Spot Management
+
+Administrators can create, update, delete, enable, and disable parking spots.
+
+![Parking Spot Management](docs/screenshots/parking-spots.png)
+
+---
+
+## User Management
+
+Administrators can manage the users of the parking management system.
+
+![User Management](docs/screenshots/user-management.png)
+
+---
+
+# Architecture
+
+The project is organized into several layers.
+
+## Domain
+
+The domain layer contains the core entities and domain-specific exceptions.
+
+```text
+src/domain/
+├── entities/
+│   ├── operator_shift.py
+│   ├── parking.py
+│   ├── parking_info.py
+│   ├── parking_session.py
+│   ├── parking_spot.py
+│   ├── receipt.py
+│   ├── tariff.py
+│   ├── user.py
+│   └── vehicle.py
+│
+└── exceptions.py
+```
+
+The domain layer represents the main business concepts of the system independently from the database and user interface.
+
+---
+
+## Application
+
+The application layer contains repository interfaces, application services, and use cases.
+
+```text
+src/application/
+├── interfaces/
+│   ├── parking_repo.py
+│   ├── receipt_repo.py
+│   ├── session_repo.py
+│   ├── shift_repo.py
+│   ├── spot_repo.py
+│   ├── tariff_repo.py
+│   ├── user_repo.py
+│   └── vehicle_repo.py
+│
+├── services/
+│   ├── auth_service.py
+│   └── fee_calculator.py
+│
+└── use_cases/
+    ├── admin_panel_usecase.py
+    ├── create_parking_spot_usecase.py
+    ├── create_user_usecase.py
+    ├── dashboard_usecase.py
+    ├── delete_parking_spot_usecase.py
+    ├── issue_receipt.py
+    ├── list_active_vehicles.py
+    ├── manage_tariffs.py
+    ├── manage_users.py
+    ├── register_entry.py
+    ├── register_exit.py
+    ├── register_exit_usecase.py
+    ├── reports.py
+    ├── show_active_vehicles.py
+    ├── toggle_parking_spot_usecase.py
+    ├── update_parking_spot_usecase.py
+    ├── update_tariff_usecase.py
+    └── update_user_usecase.py
+```
+
+---
+
+## Infrastructure
+
+The infrastructure layer contains the database connection, migrations, and concrete repository implementations.
+
+```text
+src/infrastructure/
+├── db/
+│   ├── connection.py
+│   └── migrations.py
+│
+└── repositories/
+    ├── parking_repo_sqlite.py
+    ├── receipt_repo_sqlite.py
+    ├── session_repo_sqlite.py
+    ├── shift_repo_sqlite.py
+    ├── spot_repo_sqlite.py
+    ├── tariff_repo_sqlite.py
+    ├── user_repo_sqlite.py
+    └── vehicle_repo_sqlite.py
+```
+
+---
+
+## User Interface
+
+The project provides both a desktop interface and a CLI interface.
+
+```text
+src/ui/
+├── assets/
+│   ├── fonts/
+│   │   └── BNazanin.ttf
+│   ├── logo.png
+│   └── logo1.png
+│
+├── cli/
+│   └── app.py
+│
+└── desktop/
+    ├── active_vehicles_window.py
+    ├── add_parking_spot_window.py
+    ├── add_user_window.py
+    ├── admin_panel_window.py
+    ├── dashboard_window.py
+    ├── login_window.py
+    ├── register_entry_window.py
+    └── register_exit_window.py
+```
+
+---
+
+# Project Structure
 
 ```text
 parking-management-system/
+│
 ├── README.md
 ├── .gitignore
 ├── requirements.txt
@@ -172,113 +329,13 @@ parking-management-system/
     └── domain/
 ```
 
-### Application Layer
-
-```text
-src/application/
-├── interfaces/
-│   ├── parking_repo.py
-│   ├── receipt_repo.py
-│   ├── session_repo.py
-│   ├── shift_repo.py
-│   ├── spot_repo.py
-│   ├── tariff_repo.py
-│   ├── user_repo.py
-│   └── vehicle_repo.py
-│
-├── services/
-│   ├── auth_service.py
-│   └── fee_calculator.py
-│
-└── use_cases/
-    ├── admin_panel_usecase.py
-    ├── create_parking_spot_usecase.py
-    ├── create_user_usecase.py
-    ├── dashboard_usecase.py
-    ├── delete_parking_spot_usecase.py
-    ├── issue_receipt.py
-    ├── list_active_vehicles.py
-    ├── manage_tariffs.py
-    ├── manage_users.py
-    ├── register_entry.py
-    ├── register_exit.py
-    ├── register_exit_usecase.py
-    ├── reports.py
-    ├── show_active_vehicles.py
-    ├── toggle_parking_spot_usecase.py
-    ├── update_parking_spot_usecase.py
-    ├── update_tariff_usecase.py
-    └── update_user_usecase.py
-```
-
-### Domain Layer
-
-```text
-src/domain/
-├── entities/
-│   ├── operator_shift.py
-│   ├── parking.py
-│   ├── parking_info.py
-│   ├── parking_session.py
-│   ├── parking_spot.py
-│   ├── receipt.py
-│   ├── tariff.py
-│   ├── user.py
-│   └── vehicle.py
-│
-└── exceptions.py
-```
-
-### Infrastructure Layer
-
-```text
-src/infrastructure/
-├── db/
-│   ├── connection.py
-│   └── migrations.py
-│
-└── repositories/
-    ├── parking_repo_sqlite.py
-    ├── receipt_repo_sqlite.py
-    ├── session_repo_sqlite.py
-    ├── shift_repo_sqlite.py
-    ├── spot_repo_sqlite.py
-    ├── tariff_repo_sqlite.py
-    ├── user_repo_sqlite.py
-    └── vehicle_repo_sqlite.py
-```
-
-### User Interface
-
-```text
-src/ui/
-├── assets/
-│   ├── fonts/
-│   │   └── BNazanin.ttf
-│   ├── logo.png
-│   └── logo1.png
-│
-├── cli/
-│   └── app.py
-│
-└── desktop/
-    ├── active_vehicles_window.py
-    ├── add_parking_spot_window.py
-    ├── add_user_window.py
-    ├── admin_panel_window.py
-    ├── dashboard_window.py
-    ├── login_window.py
-    ├── register_entry_window.py
-    └── register_exit_window.py
-```
-
 ---
 
-## Database
+# Database
 
-The project uses **SQLite** as its database.
+The system uses **SQLite** as its database.
 
-The database files are located in the `data/` directory:
+Database-related files are stored in the `data/` directory:
 
 ```text
 data/
@@ -287,93 +344,41 @@ data/
 └── seed.sql
 ```
 
-* `parking.db` — SQLite database used by the application
-* `schema.sql` — Database schema and table definitions
-* `seed.sql` — Initial/sample database data
+### Database Files
 
-The database is integrated with the infrastructure layer through the SQLite database connection and repository implementations.
+- `parking.db` — SQLite database used by the application
+- `schema.sql` — Database schema and table definitions
+- `seed.sql` — Initial database data
 
----
-
-## User Interface
-
-The final version of the project includes a desktop graphical interface.
-
-### Login
-
-The login window provides authentication for system users.
-
-<!-- Add screenshot here -->
-
-### Dashboard
-
-The dashboard provides an overview of the current parking system.
-
-<!-- Add screenshot here -->
-
-### Vehicle Entry
-
-Operators can register incoming vehicles and create a new parking session.
-
-<!-- Add screenshot here -->
-
-### Vehicle Exit & Payment
-
-Operators can register vehicle exits, calculate the parking fee, and process the payment.
-
-<!-- Add screenshot here -->
-
-### Active Vehicles
-
-The active vehicles window displays vehicles currently inside the parking.
-
-<!-- Add screenshot here -->
-
-### Administration Panel
-
-Administrators can access management functionality through the administration panel.
-
-<!-- Add screenshot here -->
-
-### Parking Spot Management
-
-Parking spots can be created, updated, deleted, enabled, or disabled through the management interface.
-
-<!-- Add screenshot here -->
-
-### User Management
-
-Administrators can manage system users through the user management interface.
-
-<!-- Add screenshot here -->
+The application communicates with the database through the infrastructure layer and repository implementations.
 
 ---
 
-## Documentation
+# Documentation
 
 Additional project documentation is available in the `docs/` directory.
 
 ### Class Diagram
 
-`docs/SE_ClassDiagram.svg`
+[SE_ClassDiagram.svg](docs/SE_ClassDiagram.svg)
 
 ### Use Case Diagram
 
-`docs/SE_Use-Case.svg`
+[SE_Use-Case.svg](docs/SE_Use-Case.svg)
 
 ### Database Implementation
 
-`docs/DB_implementation_HW05_Parsa_Raef.pdf`
+[DB_implementation_HW05_Parsa_Raef.pdf](docs/DB_implementation_HW05_Parsa_Raef.pdf)
 
-### User Forms & Flow
+### User Forms and Flow
 
-`docs/Parking_Management_User_Forms_and_Flow_Raef_Parsa.pdf`
+[Parking_Management_User_Forms_and_Flow_Raef_Parsa.pdf](docs/Parking_Management_User_Forms_and_Flow_Raef_Parsa.pdf)
 
 ---
 
-## Testing
+# Testing
 
-The project includes tests for database connectivity and core domain entities.
+The project includes tests for the database connection and core domain entities.
 
 ```text
 test/
@@ -390,17 +395,17 @@ test/
 
 ---
 
-## Requirements
+# Requirements
 
 The project requires:
 
-* Python 3.x
-* SQLite 3
-* Dependencies listed in `requirements.txt`
+- Python 3.x
+- SQLite
+- Python packages listed in `requirements.txt`
 
 ---
 
-## Installation
+# Installation
 
 Clone the repository:
 
@@ -414,8 +419,6 @@ Create a virtual environment:
 ```bash
 python -m venv .venv
 ```
-
-Activate the virtual environment.
 
 ### Windows
 
@@ -437,7 +440,7 @@ pip install -r requirements.txt
 
 ---
 
-## Running the Application
+# Running the Application
 
 Run the main application using:
 
@@ -445,37 +448,49 @@ Run the main application using:
 python run.py
 ```
 
-The application will start the parking management system.
+---
+
+# Utilities
+
+The project also includes utility modules for:
+
+- License plate conversion
+- Receipt PDF generation
+
+```text
+src/utils/
+├── plate_converter.py
+└── receipt_pdf.py
+```
 
 ---
 
-## Technologies
+# Technologies
 
-* **Python**
-* **SQLite**
-* **Tkinter / Python Desktop UI**
-* **Clean Architecture**
-* **Object-Oriented Programming**
-* **Repository Pattern**
-* **Unit Testing**
-* **PDF Receipt Generation**
+- Python
+- SQLite
+- Object-Oriented Programming
+- Clean Architecture principles
+- Repository Pattern
+- Unit Testing
+- PDF Receipt Generation
 
 ---
+
+# Course Project
+
+This project was developed as part of a **Software Engineering course**.
 
 ## Team
 
-This project was developed as a **Software Engineering course project** by:
-
-* **Raef Zandkarimi**
-* **Parsa Zamani**
+- **Parsa Zamani**
+- **Raef Zandkarimi**
 
 ---
 
-## Repository
+# Repository
 
 GitHub Repository:
 
 https://github.com/parsazamani1383/parking-management-system-main
-
-```
 ```
