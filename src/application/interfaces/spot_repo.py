@@ -26,3 +26,17 @@ class SpotRepository(ABC):
     @abstractmethod
     def update(self, spot: ParkingSpot) -> None:
         pass
+
+    @abstractmethod
+    def delete(
+            self,
+            spot_id: int,
+    ) -> None:
+        pass
+
+    @abstractmethod
+    def get_by_number(
+            self,
+            spot_number: str,
+    ) -> ParkingSpot | None:
+        pass
