@@ -78,7 +78,7 @@ INSERT INTO parking_spot (
 -- =========================
 INSERT INTO user (full_name, username, password_hash, role, is_active, created_at, updated_at)
 VALUES
-    ('System Admin', 'admin',    'CHANGE_ME_HASH', 'admin',    1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    ('System Admin', 'admin',    'admin123', 'admin',    1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
     ('Main Operator','operator', 'CHANGE_ME_HASH', 'operator', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 -- =========================
