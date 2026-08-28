@@ -1,67 +1,107 @@
 from datetime import datetime
-from src.application.services.fee_calculator import FeeCalculator
+
+from src.domain.exceptions import ValidationError
+
+from src.application.interfaces.vehicle_repo import (
+    VehicleRepository,
+)
+
+from src.application.interfaces.session_repo import (
+    SessionRepository,
+)
+
+from src.application.interfaces.spot_repo import (
+    SpotRepository,
+)
+
+from src.application.interfaces.tariff_repo import (
+    TariffRepository,
+)
+
+from src.application.services.fee_calculator import (
+    FeeCalculator,
+)
 
 
-class RegisterExit:
+class RegisterExitUseCase:
 
-    def __init__(self, session_repo, spot_repo, tariff_repo, receipt_repo):
+    def __init__(
+        self,
+        vehicle_repo: VehicleRepository,
+        session_repo: SessionRepository,
+        spot_repo: SpotRepository,
+        tariff_repo: TariffRepository,
+        fee_calculator: FeeCalculator,
+    ):
+        self._vehicle_repo = vehicle_repo
+        self._session_repo = session_repo
+        self._spot_repo = spot_repo
+        self._tariff_repo = tariff_repo
+        self._fee_calculator = fee_calculator
 
-        self.session_repo = session_repo
-        self.spot_repo = spot_repo
-        self.tariff_repo = tariff_repo
-        self.receipt_repo = receipt_repo
+    def execute(
+        self,
+        plate_number: str,
+    ) -> float:
 
+        vehicle = self._vehicle_repo.get_by_plate(
+            plate_number
+        )
 
-    def execute(self, license_plate: str, payment_method: str = "cash"):
+        if vehicle is None:
+            raise ValidationError(
+                "Vehicle not found."
+            )
 
-        # 1. پیدا کردن session فعال
-        session = self.session_repo.get_active_session_by_plate(license_plate)
+        session = (
+            self._session_repo
+            .get_active_by_vehicle(
+                vehicle.id
+            )
+        )
 
-        if not session:
-            raise Exception(f"No active session found for {license_plate}")
+        if session is None:
+            raise ValidationError(
+                "No active session found."
+            )
 
-        # 2. زمان خروج
+        spot = self._spot_repo.get_by_id(
+            session.spot_id
+        )
+
+        tariff = (
+            self._tariff_repo
+            .get_active_tariff(
+                vehicle.vehicle_type
+            )
+        )
+
+        if tariff is None:
+            raise ValidationError(
+                "No active tariff found."
+            )
+
         exit_time = datetime.now()
 
-        # 3. گرفتن تعرفه فعال
-        tariff = self.tariff_repo.get_tariff_by_vehicle_type("car")
-
-        if not tariff:
-            raise Exception("No active tariff found")
-
-        # 4. محاسبه هزینه
-        total_fee = FeeCalculator.calculate_fee(
+        fee = self._fee_calculator.calculate(
             session.entry_time,
             exit_time,
-            tariff
+            tariff,
         )
 
-        # 5. آزاد کردن جای پارک
-        self.spot_repo.update_status(session.parking_spot_id, "available")
-
-        # 6. بستن session
-        session.exit_time = exit_time
-        session.calculated_amount = total_fee
-        session.paid_amount = total_fee
-        session.session_status = "completed"
-
-        self.session_repo.update(session)
-
-        # 7. صدور رسید
-        receipt_number = self.receipt_repo.create(
-            session_id=session.id,
-            amount=total_fee,
-            payment_method=payment_method
+        session.close(
+            exit_time,
+            fee,
         )
 
-        # 8. خروجی
-        return {
-            "status": "success",
-            "license_plate": license_plate,
-            "entry_time": session.entry_time.strftime("%Y-%m-%d %H:%M:%S"),
-            "exit_time": exit_time.strftime("%Y-%m-%d %H:%M:%S"),
-            "duration": str(exit_time - session.entry_time).split('.')[0],
-            "total_fee": total_fee,
-            "receipt_number": receipt_number,
-            "spot_released": session.parking_spot_id
-        }
+        self._session_repo.update(
+            session
+        )
+
+        if spot:
+            spot.release()
+            self._spot_repo.update(
+                spot
+            )
+
+        return fee

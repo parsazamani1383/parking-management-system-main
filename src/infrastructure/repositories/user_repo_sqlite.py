@@ -18,15 +18,23 @@ class UserRepositorySQLite(UserRepository):
             password_hash=row["password_hash"],
             role=row["role"],
             is_active=bool(row["is_active"]),
-            created_at=datetime.fromisoformat(row["created_at"]),
+            created_at=datetime.fromisoformat(
+                row["created_at"]
+            ),
             updated_at=(
-                datetime.fromisoformat(row["updated_at"])
+                datetime.fromisoformat(
+                    row["updated_at"]
+                )
                 if row["updated_at"]
                 else None
             ),
         )
 
-    def get_by_id(self, user_id: int) -> User | None:
+    def get_by_id(
+        self,
+        user_id: int
+    ) -> User | None:
+
         conn = self._db.get_connection()
 
         try:
@@ -38,7 +46,7 @@ class UserRepositorySQLite(UserRepository):
                 FROM user
                 WHERE id = ?
                 """,
-                (user_id,),
+                (user_id,)
             )
 
             row = cursor.fetchone()
@@ -67,7 +75,7 @@ class UserRepositorySQLite(UserRepository):
                 FROM user
                 WHERE username = ?
                 """,
-                (username,),
+                (username,)
             )
 
             row = cursor.fetchone()
@@ -104,7 +112,11 @@ class UserRepositorySQLite(UserRepository):
 
         finally:
             conn.close()
-    def save(self, user: User) -> User:
+
+    def save(
+        self,
+        user: User
+    ) -> User:
 
         conn = self._db.get_connection()
 
@@ -137,7 +149,7 @@ class UserRepositorySQLite(UserRepository):
                         if user.updated_at
                         else None
                     ),
-                ),
+                )
             )
 
             conn.commit()
@@ -149,7 +161,10 @@ class UserRepositorySQLite(UserRepository):
         finally:
             conn.close()
 
-    def update(self, user: User) -> None:
+    def update(
+        self,
+        user: User
+    ) -> None:
 
         conn = self._db.get_connection()
 
@@ -180,7 +195,7 @@ class UserRepositorySQLite(UserRepository):
                         else None
                     ),
                     user.id,
-                ),
+                )
             )
 
             conn.commit()
@@ -188,7 +203,10 @@ class UserRepositorySQLite(UserRepository):
         finally:
             conn.close()
 
-    def delete(self, user_id: int) -> None:
+    def delete(
+        self,
+        user_id: int
+    ) -> None:
 
         conn = self._db.get_connection()
 
@@ -200,7 +218,7 @@ class UserRepositorySQLite(UserRepository):
                 DELETE FROM user
                 WHERE id = ?
                 """,
-                (user_id,),
+                (user_id,)
             )
 
             conn.commit()

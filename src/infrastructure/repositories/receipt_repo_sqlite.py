@@ -1,79 +1,158 @@
-from src.infrastructure.db.connection import DatabaseConnection
-from src.domain.entities.receipt import Receipt
 from datetime import datetime
 
+from src.application.interfaces.receipt_repo import ReceiptRepository
+from src.domain.entities.receipt import Receipt
+from src.infrastructure.db.connection import DatabaseConnection
 
-class ReceiptRepoSqlite:
 
-    def __init__(self):
-        self.conn = DatabaseConnection.get_connection()
+class ReceiptRepositorySQLite(ReceiptRepository):
 
-    def create(self, receipt: Receipt):
+    def __init__(self, db: DatabaseConnection):
+        self._db = db
 
-        cursor = self.conn.cursor()
+    def _row_to_entity(
+        self,
+        row
+    ) -> Receipt:
 
-        cursor.execute("""
-            INSERT INTO receipt (
-                parking_session_id,
-                receipt_number,
-                issued_by_user_id,
-                issued_at,
-                amount,
-                payment_method,
-                payment_status,
-                description
+        return Receipt(
+            id=row["id"],
+            session_id=row["parking_session_id"],
+            receipt_number=row["receipt_number"],
+            amount=row["amount"],
+            payment_method=row["payment_method"],
+            issued_at=datetime.fromisoformat(
+                row["issued_at"]
+            ),
+        )
+
+    def get_by_id(
+        self,
+        receipt_id: int
+    ) -> Receipt | None:
+
+        conn = self._db.get_connection()
+
+        try:
+            cursor = conn.cursor()
+
+            cursor.execute(
+                """
+                SELECT *
+                FROM receipt
+                WHERE id = ?
+                """,
+                (receipt_id,)
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            receipt.parking_session_id,
-            receipt.receipt_number,
-            receipt.issued_by_user_id,
-            receipt.issued_at.isoformat(),
-            receipt.amount,
-            receipt.payment_method,
-            receipt.payment_status,
-            receipt.description
-        ))
 
-        self.conn.commit()
-        receipt.id = cursor.lastrowid
-        return receipt
+            row = cursor.fetchone()
 
-    def get_by_session(self, session_id: int):
+            if row is None:
+                return None
 
-        cursor = self.conn.cursor()
+            return self._row_to_entity(row)
 
-        cursor.execute("""
-            SELECT * FROM receipt
-            WHERE parking_session_id = ?
-        """, (session_id,))
+        finally:
+            conn.close()
 
-        row = cursor.fetchone()
+    def get_by_session(
+        self,
+        session_id: int
+    ) -> Receipt | None:
 
-        if row:
-            data = dict(row)
-            data["issued_at"] = datetime.fromisoformat(data["issued_at"])
-            return Receipt(**data)
+        conn = self._db.get_connection()
 
-        return None
+        try:
+            cursor = conn.cursor()
 
-    def get_receipts_in_range(self, start_date, end_date):
+            cursor.execute(
+                """
+                SELECT *
+                FROM receipt
+                WHERE parking_session_id = ?
+                """,
+                (session_id,)
+            )
 
-        cursor = self.conn.cursor()
+            row = cursor.fetchone()
 
-        cursor.execute("""
-            SELECT * FROM receipt
-            WHERE issued_at BETWEEN ? AND ?
-            AND payment_status = 'paid'
-        """, (start_date.isoformat(), end_date.isoformat()))
+            if row is None:
+                return None
 
-        rows = cursor.fetchall()
+            return self._row_to_entity(row)
 
-        receipts = []
+        finally:
+            conn.close()
 
-        for row in rows:
-            data = dict(row)
-            data["issued_at"] = datetime.fromisoformat(data["issued_at"])
-            receipts.append(Receipt(**data))
+    def get_all(
+            self
+    ) -> list[Receipt]:
 
-        return receipts
+        conn = self._db.get_connection()
+
+        try:
+            cursor = conn.cursor()
+
+            cursor.execute(
+                """
+                SELECT *
+                FROM receipt
+                ORDER BY id
+                """
+            )
+
+            rows = cursor.fetchall()
+
+            return [
+                self._row_to_entity(row)
+                for row in rows
+            ]
+
+        finally:
+            conn.close()
+
+    def save(
+        self,
+        receipt: Receipt
+    ) -> Receipt:
+
+        conn = self._db.get_connection()
+
+        try:
+            cursor = conn.cursor()
+
+            cursor.execute(
+                """
+                INSERT INTO receipt
+                (
+                    parking_session_id,
+                    receipt_number,
+                    issued_by_user_id,
+                    issued_at,
+                    amount,
+                    payment_method,
+                    payment_status,
+                    description
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    receipt.session_id,
+                    receipt.receipt_number,
+                    1,
+                    receipt.issued_at.isoformat(),
+                    receipt.amount,
+                    receipt.payment_method,
+                    "paid",
+                    None,
+                )
+            )
+
+            conn.commit()
+
+            receipt.id = cursor.lastrowid
+
+            return receipt
+
+        finally:
+            conn.close()

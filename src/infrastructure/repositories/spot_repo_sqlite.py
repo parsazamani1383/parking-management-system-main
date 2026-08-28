@@ -8,7 +8,11 @@ class SpotRepositorySQLite(SpotRepository):
     def __init__(self, db: DatabaseConnection):
         self._db = db
 
-    def _row_to_entity(self, row) -> ParkingSpot:
+    def _row_to_entity(
+        self,
+        row
+    ) -> ParkingSpot:
+
         return ParkingSpot(
             id=row["id"],
             parking_id=row["parking_id"],
@@ -20,7 +24,10 @@ class SpotRepositorySQLite(SpotRepository):
             is_active=bool(row["is_active"]),
         )
 
-    def get_by_id(self, spot_id: int) -> ParkingSpot | None:
+    def get_by_id(
+        self,
+        spot_id: int
+    ) -> ParkingSpot | None:
 
         conn = self._db.get_connection()
 
@@ -33,7 +40,7 @@ class SpotRepositorySQLite(SpotRepository):
                 FROM parking_spot
                 WHERE id = ?
                 """,
-                (spot_id,),
+                (spot_id,)
             )
 
             row = cursor.fetchone()
@@ -48,7 +55,7 @@ class SpotRepositorySQLite(SpotRepository):
 
     def get_available_spot(
         self,
-        spot_type: str,
+        spot_type: str
     ) -> ParkingSpot | None:
 
         conn = self._db.get_connection()
@@ -61,11 +68,12 @@ class SpotRepositorySQLite(SpotRepository):
                 SELECT *
                 FROM parking_spot
                 WHERE spot_type = ?
-                AND status = 'available'
-                AND is_active = 1
+                  AND status = 'available'
+                  AND is_active = 1
+                ORDER BY id
                 LIMIT 1
                 """,
-                (spot_type,),
+                (spot_type,)
             )
 
             row = cursor.fetchone()
@@ -105,7 +113,7 @@ class SpotRepositorySQLite(SpotRepository):
 
     def save(
         self,
-        spot: ParkingSpot,
+        spot: ParkingSpot
     ) -> ParkingSpot:
 
         conn = self._db.get_connection()
@@ -135,7 +143,7 @@ class SpotRepositorySQLite(SpotRepository):
                     spot.level_label,
                     spot.section_label,
                     int(spot.is_active),
-                ),
+                )
             )
 
             conn.commit()
@@ -149,7 +157,7 @@ class SpotRepositorySQLite(SpotRepository):
 
     def update(
         self,
-        spot: ParkingSpot,
+        spot: ParkingSpot
     ) -> None:
 
         conn = self._db.get_connection()
@@ -179,7 +187,60 @@ class SpotRepositorySQLite(SpotRepository):
                     spot.section_label,
                     int(spot.is_active),
                     spot.id,
-                ),
+                )
+            )
+
+            conn.commit()
+
+        finally:
+            conn.close()
+
+    def get_by_number(
+            self,
+            spot_number: str,
+    ) -> ParkingSpot | None:
+
+        conn = self._db.get_connection()
+
+        try:
+            cursor = conn.cursor()
+
+            cursor.execute(
+                """
+                SELECT *
+                FROM parking_spot
+                WHERE spot_number = ?
+                """,
+                (spot_number,),
+            )
+
+            row = cursor.fetchone()
+
+            if row is None:
+                return None
+
+            return self._row_to_entity(row)
+
+        finally:
+            conn.close()
+
+    def delete(
+            self,
+            spot_id: int,
+    ) -> None:
+
+        conn = self._db.get_connection()
+
+        try:
+            cursor = conn.cursor()
+
+            cursor.execute(
+                """
+                DELETE
+                FROM parking_spot
+                WHERE id = ?
+                """,
+                (spot_id,),
             )
 
             conn.commit()

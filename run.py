@@ -1,21 +1,48 @@
-from src.config.settings import DATABASE_PATH
-from src.infrastructure.db.connection import DatabaseConnection
-from src.infrastructure.repositories.spot_repo_sqlite import (
-    SpotRepositorySQLite,
+import customtkinter as ctk
+
+from src.config.settings import (
+    DATABASE_PATH,
 )
 
-db = DatabaseConnection(str(DATABASE_PATH))
+from src.infrastructure.db.connection import (
+    DatabaseConnection,
+)
 
-repo = SpotRepositorySQLite(db)
+from src.infrastructure.repositories.user_repo_sqlite import (
+    UserRepositorySQLite,
+)
 
-spot = repo.get_available_spot("car")
+from src.ui.desktop.login_window import (
+    LoginWindow,
+)
 
-print(spot)
 
-spot.occupy()
+def main():
 
-repo.update(spot)
+    ctk.set_appearance_mode(
+        "dark"
+    )
 
-updated = repo.get_by_id(spot.id)
+    ctk.set_default_color_theme(
+        "blue"
+    )
 
-print(updated.status)
+    db = DatabaseConnection(
+        str(DATABASE_PATH)
+    )
+
+    user_repo = (
+        UserRepositorySQLite(
+            db
+        )
+    )
+
+    app = LoginWindow(
+        user_repo
+    )
+
+    app.mainloop()
+
+
+if __name__ == "__main__":
+    main()

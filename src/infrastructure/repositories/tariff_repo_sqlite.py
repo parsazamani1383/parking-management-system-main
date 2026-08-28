@@ -1,82 +1,171 @@
+from datetime import datetime
+
+from src.application.interfaces.tariff_repo import TariffRepository
+from src.domain.entities.tariff import Tariff
 from src.infrastructure.db.connection import DatabaseConnection
 
 
-class TariffRepoSqlite:
+class TariffRepositorySQLite(TariffRepository):
 
-    def __init__(self):
-        self.conn = DatabaseConnection.get_connection()
+    def __init__(self, db: DatabaseConnection):
+        self._db = db
 
+    def _row_to_entity(
+        self,
+        row
+    ) -> Tariff:
 
-    def get_tariff_by_vehicle_type(self, vehicle_type):
+        return Tariff(
+            id=row["id"],
+            vehicle_type=row["vehicle_type"],
+            base_rate=row["base_amount"],
+            hourly_rate=row["hourly_amount"] or 0,
+            daily_rate=row["daily_amount"] or 0,
+            is_active=bool(row["is_active"]),
+            created_at=datetime.fromisoformat(
+                row["effective_from"]
+            ),
+        )
 
-        cursor = self.conn.cursor()
+    def get_active_tariff(
+        self,
+        vehicle_type: str
+    ) -> Tariff | None:
 
-        cursor.execute("""
-            SELECT *
-            FROM tariff
-            WHERE vehicle_type = ?
-            AND is_active = 1
-            ORDER BY effective_from DESC
-            LIMIT 1
-        """, (vehicle_type,))
+        conn = self._db.get_connection()
 
-        row = cursor.fetchone()
+        try:
+            cursor = conn.cursor()
 
-        if row:
-            return dict(row)
-
-        return None
-
-
-    def save(self, tariff):
-
-        cursor = self.conn.cursor()
-
-        cursor.execute("""
-            INSERT INTO tariff (
-                vehicle_type,
-                tariff_type,
-                base_amount,
-                hourly_amount,
-                daily_amount,
-                effective_from,
-                is_active
+            cursor.execute(
+                """
+                SELECT *
+                FROM tariff
+                WHERE vehicle_type = ?
+                  AND is_active = 1
+                ORDER BY id
+                LIMIT 1
+                """,
+                (vehicle_type,)
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, (
-            tariff.vehicle_type,
-            tariff.tariff_type,
-            tariff.base_amount,
-            tariff.hourly_amount,
-            tariff.daily_amount,
-            tariff.effective_from,
-            tariff.is_active
-        ))
 
-        self.conn.commit()
+            row = cursor.fetchone()
 
-        tariff.id = cursor.lastrowid
-        return tariff
+            if row is None:
+                return None
 
+            return self._row_to_entity(row)
 
-    def update(self, tariff):
+        finally:
+            conn.close()
 
-        cursor = self.conn.cursor()
+    def get_by_id(
+        self,
+        tariff_id: int
+    ) -> Tariff | None:
 
-        cursor.execute("""
-            UPDATE tariff
-            SET
-                base_amount = ?,
-                hourly_amount = ?,
-                daily_amount = ?,
-                is_active = ?
-            WHERE id = ?
-        """, (
-            tariff.base_amount,
-            tariff.hourly_amount,
-            tariff.daily_amount,
-            tariff.is_active,
-            tariff.id
-        ))
+        conn = self._db.get_connection()
 
-        self.conn.commit()
+        try:
+            cursor = conn.cursor()
+
+            cursor.execute(
+                """
+                SELECT *
+                FROM tariff
+                WHERE id = ?
+                """,
+                (tariff_id,)
+            )
+
+            row = cursor.fetchone()
+
+            if row is None:
+                return None
+
+            return self._row_to_entity(row)
+
+        finally:
+            conn.close()
+
+    def save(
+        self,
+        tariff: Tariff
+    ) -> Tariff:
+
+        conn = self._db.get_connection()
+
+        try:
+            cursor = conn.cursor()
+
+            cursor.execute(
+                """
+                INSERT INTO tariff
+                (
+                    vehicle_type,
+                    tariff_type,
+                    base_amount,
+                    hourly_amount,
+                    daily_amount,
+                    fixed_amount,
+                    is_active,
+                    effective_from
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    tariff.vehicle_type,
+                    "hourly",
+                    tariff.base_rate,
+                    tariff.hourly_rate,
+                    tariff.daily_rate,
+                    None,
+                    int(tariff.is_active),
+                    tariff.created_at.isoformat(),
+                )
+            )
+
+            conn.commit()
+
+            tariff.id = cursor.lastrowid
+
+            return tariff
+
+        finally:
+            conn.close()
+
+    def update(
+        self,
+        tariff: Tariff
+    ) -> None:
+
+        conn = self._db.get_connection()
+
+        try:
+            cursor = conn.cursor()
+
+            cursor.execute(
+                """
+                UPDATE tariff
+                SET
+                    vehicle_type = ?,
+                    base_amount = ?,
+                    hourly_amount = ?,
+                    daily_amount = ?,
+                    is_active = ?
+                WHERE id = ?
+                """,
+                (
+                    tariff.vehicle_type,
+                    tariff.base_rate,
+                    tariff.hourly_rate,
+                    tariff.daily_rate,
+                    int(tariff.is_active),
+                    tariff.id,
+                )
+            )
+
+            conn.commit()
+
+        finally:
+            conn.close()
