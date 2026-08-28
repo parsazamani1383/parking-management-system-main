@@ -129,9 +129,9 @@ This section displays vehicles that are currently inside the parking facility.
 The administration panel provides access to management functionality such as users, parking spots, tariffs, and other administrative operations.
 
 ![Administration Panel](docs/screenshots/admin-panel.png)
-![Administration Panel](docs/screenshots/admin-panel1.png)
-![Administration Panel](docs/screenshots/admin-panel2.png)
-![Administration Panel](docs/screenshots/admin-panel3.png)
+![Administration Panel](docs/screenshots/admin_panel1.png)
+![Administration Panel](docs/screenshots/admin_panel2.png)
+![Administration Panel](docs/screenshots/admin_panel3.png)
 
 ---
 
