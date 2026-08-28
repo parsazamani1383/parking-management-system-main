@@ -104,7 +104,7 @@ The dashboard provides an overview of the current state of the parking system, i
 
 Operators can register an incoming vehicle by entering the license plate information and selecting the vehicle type.
 
-![Vehicle Entry](docs/screenshots/vehicle-entry.png)
+![Vehicle Entry](docs/screenshots/register-entry.png)
 
 ---
 
@@ -112,7 +112,7 @@ Operators can register an incoming vehicle by entering the license plate informa
 
 The vehicle exit screen is used to register a vehicle's departure, calculate the parking fee, and complete the payment process.
 
-![Vehicle Exit](docs/screenshots/vehicle-exit.png)
+![Vehicle Exit](docs/screenshots/register-exit.png)
 
 ---
 
@@ -124,27 +124,14 @@ This section displays vehicles that are currently inside the parking facility.
 
 ---
 
-## Administration Panel
+## Administration Panels
 
 The administration panel provides access to management functionality such as users, parking spots, tariffs, and other administrative operations.
 
 ![Administration Panel](docs/screenshots/admin-panel.png)
-
----
-
-## Parking Spot Management
-
-Administrators can create, update, delete, enable, and disable parking spots.
-
-![Parking Spot Management](docs/screenshots/parking-spots.png)
-
----
-
-## User Management
-
-Administrators can manage the users of the parking management system.
-
-![User Management](docs/screenshots/user-management.png)
+![Administration Panel](docs/screenshots/admin-panel1.png)
+![Administration Panel](docs/screenshots/admin-panel2.png)
+![Administration Panel](docs/screenshots/admin-panel3.png)
 
 ---
 
